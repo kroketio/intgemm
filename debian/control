@@ -1,0 +1,16 @@
+Source: libintgemm
+Section: libs
+Priority: extra
+Maintainer: Sander <code@kroket.io>
+Build-Depends: debhelper (>= 10),
+    cmake,
+Homepage: https://github.com/maemo-leste-upstream-forks/intgemm
+XSBC-Bugtracker: https://github.com/maemo-leste-upstream-forks/intgemm/issues
+Vcs-Git: https://github.com/maemo-leste-upstream-forks/intgemm/
+Vcs-Browser: https://github.com/maemo-leste-upstream-forks/intgemm/
+
+
+Package: libintgemm
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: int8_t and int16_t matrix multiply based on https://arxiv.org/abs/1705.01991

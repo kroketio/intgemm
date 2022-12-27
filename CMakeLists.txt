@@ -3,6 +3,7 @@ project(intgemm)
 string(ASCII 27 Esc)
 set(Orange "${Esc}[33m")
 set(ColourReset "${Esc}[m")
+set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 if(NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE Release)
@@ -63,6 +64,7 @@ add_library(intgemm STATIC intgemm/intgemm.cc)
 
 # Generate configure file
 configure_file(intgemm/intgemm_config.h.in intgemm/intgemm_config.h)
+install(FILES ${CMAKE_BINARY_DIR}/intgemm/intgemm_config.h DESTINATION "${CMAKE_INSTALL_PREFIX}/include/intgemm")
 #Ensure it is included by users.
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 target_include_directories(intgemm PUBLIC ${CMAKE_CURRENT_BINARY_DIR})
@@ -95,6 +97,17 @@ option(INTGEMM_CPUID_ENVIRONMENT "Allow INTGEMM_CPUID environment variable to do
 if (INTGEMM_CPUID_ENVIRONMENT)
   target_compile_definitions(intgemm PRIVATE INTGEMM_CPUID_ENVIRONMENT)
 endif()
+
+install(TARGETS intgemm
+        DESTINATION lib)
+
+install(DIRECTORY "${CMAKE_SOURCE_DIR}/intgemm/"
+        DESTINATION "${CMAKE_INSTALL_PREFIX}/include/intgemm"
+        FILES_MATCHING
+        PATTERN "*.h"
+        PATTERN "*.hpp"
+        PATTERN "*.inl"
+        )
 
 if(INTGEMM_DONT_BUILD_TESTS)
   return()
