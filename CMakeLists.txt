@@ -1,9 +1,12 @@
 cmake_minimum_required(VERSION 3.5)
-project(intgemm)
+project(intgemm VERSION 0.0.2)
 string(ASCII 27 Esc)
 set(Orange "${Esc}[33m")
 set(ColourReset "${Esc}[m")
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+
+include(GNUInstallDirs)  # initializes ${CMAKE_INSTALL_*DIR} to sane defaults
+include(CMakePackageConfigHelpers)
 
 if(NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE Release)
@@ -65,12 +68,6 @@ add_library(intgemm STATIC intgemm/intgemm.cc)
 # Generate configure file
 configure_file(intgemm/intgemm_config.h.in intgemm/intgemm_config.h)
 install(FILES ${CMAKE_BINARY_DIR}/intgemm/intgemm_config.h DESTINATION "${CMAKE_INSTALL_PREFIX}/include/intgemm")
-#Ensure it is included by users.
-include_directories(${CMAKE_CURRENT_BINARY_DIR})
-target_include_directories(intgemm PUBLIC ${CMAKE_CURRENT_BINARY_DIR})
-
-# This isn't necessary since intgemm uses entirely relative paths but source code depending on it may want to #include <intgemm/intgemm.h>
-target_include_directories(intgemm INTERFACE .)
 
 option(USE_OPENMP "Use OpenMP" OFF)
 if (USE_OPENMP)
@@ -98,18 +95,52 @@ if (INTGEMM_CPUID_ENVIRONMENT)
   target_compile_definitions(intgemm PRIVATE INTGEMM_CPUID_ENVIRONMENT)
 endif()
 
+target_include_directories(intgemm
+        PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+        PUBLIC $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
+        )
+
 install(TARGETS intgemm
-        DESTINATION lib)
+        EXPORT intgemmTargets
+        LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+        ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+        RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+        INCLUDES DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+        )
 
 install(DIRECTORY "${CMAKE_SOURCE_DIR}/intgemm/"
-        DESTINATION "${CMAKE_INSTALL_PREFIX}/include/intgemm"
+        DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/intgemm"
         FILES_MATCHING
         PATTERN "*.h"
         PATTERN "*.hpp"
         PATTERN "*.inl"
         )
 
-if(INTGEMM_DONT_BUILD_TESTS)
+install(EXPORT intgemmTargets
+        FILE intgemmTargets.cmake
+        NAMESPACE intgemm::
+        DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/intgemm
+        )
+
+configure_package_config_file(${CMAKE_CURRENT_SOURCE_DIR}/Config.cmake.in
+        "${CMAKE_CURRENT_BINARY_DIR}/intgemmConfig.cmake"
+        INSTALL_DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/intgemm
+        )
+
+write_basic_package_version_file(
+        "${CMAKE_CURRENT_BINARY_DIR}/intgemmConfigVersion.cmake"
+        VERSION "${CMAKE_PROJECT_VERSION}"
+        COMPATIBILITY AnyNewerVersion
+)
+
+install(FILES
+        "${CMAKE_CURRENT_BINARY_DIR}/intgemmConfig.cmake"
+        "${CMAKE_CURRENT_BINARY_DIR}/intgemmConfigVersion.cmake"
+        DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/intgemm
+        )
+
+if(NOT INTGEMM_BUILD_TESTS)
   return()
 endif()
 
