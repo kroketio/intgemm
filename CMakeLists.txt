@@ -1,9 +1,16 @@
-cmake_minimum_required(VERSION 3.5)
+cmake_minimum_required(VERSION 3.16)
+set(CMAKE_CXX_STANDARD 17)
+
+if(NOT CMAKE_BUILD_TYPE)
+  set(CMAKE_BUILD_TYPE "Release")
+endif()
+
 project(intgemm VERSION 0.0.2)
+set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+
 string(ASCII 27 Esc)
 set(Orange "${Esc}[33m")
 set(ColourReset "${Esc}[m")
-set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 include(GNUInstallDirs)  # initializes ${CMAKE_INSTALL_*DIR} to sane defaults
 include(CMakePackageConfigHelpers)
